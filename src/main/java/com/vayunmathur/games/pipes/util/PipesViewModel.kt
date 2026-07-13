@@ -285,6 +285,29 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val refreshed = withContext(Dispatchers.IO) {
                 repository.updateBestScore(level.id, moves)
+                
+                try {
+                    val solutionsDir = java.io.File("/sdcard/Vypeensoft/Flow_Free/solutions/")
+                    solutionsDir.mkdirs()
+
+                    val solutionPaths = s.gameState.paths.map { (color, cells) ->
+                        com.vayunmathur.games.pipes.data.PathData(color, cells)
+                    }
+
+                    val solutionData = com.vayunmathur.games.pipes.data.SolutionData(
+                        levelId = level.id,
+                        optimalMoves = level.optimalMoves,
+                        playerMoves = moves,
+                        solution = solutionPaths
+                    )
+
+                    val json = kotlinx.serialization.json.Json { prettyPrint = true }
+                    val file = java.io.File(solutionsDir, "${level.id}_solution.json")
+                    file.writeText(json.encodeToString(com.vayunmathur.games.pipes.data.SolutionData.serializer(), solutionData))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
                 repository.getLevelStats()
             }
             _levelStats.value = refreshed
@@ -316,7 +339,8 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
                 gameState = it.history.last(),
                 history = it.history.dropLast(1),
                 activeColor = null,
-                activePath = emptyList()
+                activePath = emptyList(),
+                preDrawState = null
             )
         }
     }
@@ -330,7 +354,8 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
                 history = emptyList(),
                 isLevelWon = false,
                 activeColor = null,
-                activePath = emptyList()
+                activePath = emptyList(),
+                preDrawState = null
             )
         }
     }

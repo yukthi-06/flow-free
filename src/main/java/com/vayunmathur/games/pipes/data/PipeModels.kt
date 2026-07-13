@@ -1,6 +1,7 @@
 package com.vayunmathur.games.pipes.data
 
 import android.content.Context
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
@@ -9,7 +10,19 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
+@Serializable
 data class CellPos(val row: Int, val col: Int)
+
+@Serializable
+data class PathData(val colorIndex: Int, val path: List<CellPos>)
+
+@Serializable
+data class SolutionData(
+    val levelId: String,
+    val optimalMoves: Int,
+    val playerMoves: Int,
+    val solution: List<PathData>
+)
 
 data class RenderPos(val x: Float, val y: Float)
 
