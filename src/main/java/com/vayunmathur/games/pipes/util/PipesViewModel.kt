@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -61,13 +62,20 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
     private val _nextLevel = MutableSharedFlow<Int>(extraBufferCapacity = 1)
     val nextLevel: SharedFlow<Int> = _nextLevel.asSharedFlow()
 
-    private val ds = DataStoreUtils.getInstance(application)
-
-    val colorblind: StateFlow<Boolean> = ds.booleanFlow(KEY_COLORBLIND)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ds.getBoolean(KEY_COLORBLIND, false))
+    val colorblind: StateFlow<Boolean> = SettingsManager.settings
+        .map { it.colorblind }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsManager.settings.value.colorblind)
 
     fun setColorblind(value: Boolean) {
-        viewModelScope.launch { ds.setBoolean(KEY_COLORBLIND, value) }
+        SettingsManager.setColorblind(value)
+    }
+
+    val levelsPath: StateFlow<String> = SettingsManager.settings
+        .map { it.levelsPath }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsManager.settings.value.levelsPath)
+
+    fun setLevelsPath(path: String) {
+        SettingsManager.setLevelsPath(path)
     }
 
     init {
@@ -332,6 +340,6 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     companion object {
-        const val KEY_COLORBLIND = "pipes_colorblind"
+        const val DRAG_THRESHOLD = 15f
     }
 }

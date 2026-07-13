@@ -55,8 +55,42 @@ data class LevelPack(
             private set
 
         fun init(context: Context) {
-            PACKS = PACK_FILES.map { filename ->
-                packFromJson(context.assets.open(filename).bufferedReader().readText())
+            val levelsPath = com.vayunmathur.games.pipes.util.SettingsManager.settings.value.levelsPath
+            val levelsDir = java.io.File(levelsPath)
+            
+            val externalPacks = mutableListOf<LevelPack>()
+            if (levelsDir.exists() && levelsDir.isDirectory) {
+                val jsonFiles = levelsDir.listFiles { _, name -> name.endsWith(".json") }
+                if (jsonFiles != null && jsonFiles.isNotEmpty()) {
+                    for (file in jsonFiles) {
+                        try {
+                            externalPacks.add(packFromJson(file.readText()))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            }
+            
+            if (externalPacks.isNotEmpty()) {
+                PACKS = externalPacks
+            } else {
+                PACKS = PACK_FILES.map { filename ->
+                    packFromJson(context.assets.open(filename).bufferedReader().readText())
+                }
+                
+                try {
+                    levelsDir.mkdirs()
+                    PACK_FILES.forEach { filename ->
+                        val text = context.assets.open(filename).bufferedReader().readText()
+                        val file = java.io.File(levelsDir, filename.substringAfterLast("/"))
+                        if (!file.exists()) {
+                            file.writeText(text)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }

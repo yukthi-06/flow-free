@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,11 +67,33 @@ import com.vayunmathur.library.util.NavKey
 import com.vayunmathur.library.util.rememberNavBackStack
 import kotlinx.serialization.Serializable
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                    intent.addCategory("android.intent.category.DEFAULT")
+                    intent.data = Uri.parse(String.format("package:%s", applicationContext.packageName))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    val intent = Intent()
+                    intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                    startActivity(intent)
+                }
+            }
+        }
+        
         LevelPack.init(this)
         setContent {
             PipesTheme {
@@ -385,10 +408,12 @@ fun GameScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel, packIn
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel) {
     val colorblind by viewModel.colorblind.collectAsState()
+    val levelsPath by viewModel.levelsPath.collectAsState()
     Scaffold(topBar = {
         TopAppBar(
             { Text(stringResource(R.string.settings)) },
@@ -421,6 +446,13 @@ fun SettingsScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel) {
                 }
                 Switch(checked = colorblind, onCheckedChange = { viewModel.setColorblind(it) })
             }
+            
+            OutlinedTextField(
+                value = levelsPath,
+                onValueChange = { viewModel.setLevelsPath(it) },
+                label = { Text("Game Levels Path") },
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            )
         }
     }
 }
