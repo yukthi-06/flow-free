@@ -149,12 +149,6 @@ fun Navigation(viewModel: PipesViewModel) {
                 SettingsScreen(backStack, viewModel)
             }
         }
-
-        newAchievement?.let {
-            AchievementNotification(it) {
-                viewModel.dismissAchievementNotification()
-            }
-        }
     }
 }
 
