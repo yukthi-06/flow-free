@@ -342,25 +342,34 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
                     val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
                     val solutionData = json.decodeFromString(com.vayunmathur.games.pipes.data.SolutionData.serializer(), file.readText())
                     
-                    val newPaths = mutableMapOf<Int, List<com.vayunmathur.games.pipes.data.CellPos>>()
-                    val newCellOwner = mutableMapOf<com.vayunmathur.games.pipes.data.CellPos, Int>()
-                    
-                    solutionData.solution.forEach { pathData ->
-                        newPaths[pathData.colorIndex] = pathData.path
-                        pathData.path.forEach { cell ->
-                            newCellOwner[cell] = pathData.colorIndex
-                        }
-                    }
-                    
                     _uiState.update { 
                         it.copy(
-                            gameState = PipesGameState(newPaths, newCellOwner),
+                            gameState = PipesGameState(),
                             isLevelWon = true,
                             history = emptyList(),
                             activeColor = null,
                             activePath = emptyList(),
                             preDrawState = null
                         )
+                    }
+
+                    val newPaths = mutableMapOf<Int, List<com.vayunmathur.games.pipes.data.CellPos>>()
+                    val newCellOwner = mutableMapOf<com.vayunmathur.games.pipes.data.CellPos, Int>()
+                    
+                    for (pathData in solutionData.solution) {
+                        val currentPath = mutableListOf<com.vayunmathur.games.pipes.data.CellPos>()
+                        for (cell in pathData.path) {
+                            currentPath.add(cell)
+                            newPaths[pathData.colorIndex] = currentPath.toList()
+                            newCellOwner[cell] = pathData.colorIndex
+                            
+                            _uiState.update {
+                                it.copy(
+                                    gameState = PipesGameState(newPaths.toMap(), newCellOwner.toMap())
+                                )
+                            }
+                            delay(50)
+                        }
                     }
                 }
             } catch (e: Exception) {
