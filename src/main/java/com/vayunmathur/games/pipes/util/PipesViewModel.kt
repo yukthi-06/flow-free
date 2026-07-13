@@ -359,13 +359,15 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
                     for (pathData in solutionData.solution) {
                         val currentPath = mutableListOf<com.vayunmathur.games.pipes.data.CellPos>()
                         for (cell in pathData.path) {
+                            val previousState = _uiState.value.gameState
                             currentPath.add(cell)
                             newPaths[pathData.colorIndex] = currentPath.toList()
                             newCellOwner[cell] = pathData.colorIndex
                             
                             _uiState.update {
                                 it.copy(
-                                    gameState = PipesGameState(newPaths.toMap(), newCellOwner.toMap())
+                                    gameState = PipesGameState(newPaths.toMap(), newCellOwner.toMap()),
+                                    history = it.history + previousState
                                 )
                             }
                             delay(50)
@@ -380,11 +382,12 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onUndo() {
         val s = _uiState.value
-        if (s.history.isEmpty() || s.isLevelWon) return
+        if (s.history.isEmpty()) return
         _uiState.update {
             it.copy(
                 gameState = it.history.last(),
                 history = it.history.dropLast(1),
+                isLevelWon = false,
                 activeColor = null,
                 activePath = emptyList(),
                 preDrawState = null
@@ -394,7 +397,8 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onRestart() {
         val s = _uiState.value
-        if (s.history.isEmpty() || s.isLevelWon || s.packIndex < 0) return
+        if (s.packIndex < 0) return
+        if (s.history.isEmpty() && !s.isLevelWon) return
         _uiState.update {
             it.copy(
                 gameState = PipesGameState(),

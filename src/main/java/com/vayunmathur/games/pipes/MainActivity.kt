@@ -322,22 +322,21 @@ fun GameScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel, packIn
                 val hasHistory = isReady && uiState.history.isNotEmpty()
                 Button(
                     onClick = { viewModel.onUndo() },
-                    enabled = hasHistory && !isLevelWon
+                    enabled = hasHistory
                 ) {
                     Text(stringResource(R.string.undo))
                 }
                 Button(
                     onClick = { viewModel.onRestart() },
-                    enabled = hasHistory && !isLevelWon
+                    enabled = hasHistory || isLevelWon
                 ) {
                     Text(stringResource(R.string.restart))
                 }
-                if (currentLevelStats != null && !isLevelWon) {
-                    Button(
-                        onClick = { viewModel.loadSolution() }
-                    ) {
-                        Text("Solution")
-                    }
+                Button(
+                    onClick = { viewModel.loadSolution() },
+                    enabled = currentLevelStats != null && !isLevelWon
+                ) {
+                    Text("Solution")
                 }
             }
             val board = @Composable { boardModifier: Modifier ->
