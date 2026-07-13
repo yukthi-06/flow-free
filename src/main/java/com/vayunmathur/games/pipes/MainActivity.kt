@@ -289,7 +289,7 @@ fun GameScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel, packIn
     val currentLevelData = if (isReady) uiState.levelData!! else pack.levels[levelIndex]
     val isLevelWon = isReady && uiState.isLevelWon
 
-    Scaffold(topBar = { TopAppBar({}, navigationIcon = { IconNavigation(backStack) }) }) { innerPadding ->
+    Scaffold(topBar = { TopAppBar({ Text(pack.name) }, navigationIcon = { IconNavigation(backStack) }) }) { innerPadding ->
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
