@@ -216,7 +216,7 @@ fun LevelScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel, packI
     val levelStats by viewModel.levelStats.collectAsState()
     Scaffold(topBar = {
         TopAppBar(
-            { Text(stringResource(R.string.level_selector)) },
+            { Text("${pack.name} " + stringResource(R.string.level_selector)) },
             navigationIcon = { IconNavigation(backStack) }
         )
     }) { paddingValues ->
