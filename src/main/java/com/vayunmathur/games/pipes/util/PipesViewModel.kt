@@ -80,7 +80,32 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
+            syncSolutionsFromDisk()
             achievementsManager.checkExistingAchievements()
+        }
+    }
+
+    private suspend fun syncSolutionsFromDisk() = withContext(Dispatchers.IO) {
+        try {
+            val solutionsDir = java.io.File("/sdcard/Vypeensoft/Flow_Free/solutions/")
+            if (solutionsDir.exists() && solutionsDir.isDirectory) {
+                val files = solutionsDir.listFiles { _, name -> name.endsWith("_solution.json") }
+                if (files != null) {
+                    val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                    for (file in files) {
+                        try {
+                            val content = file.readText()
+                            val solutionData = json.decodeFromString(com.vayunmathur.games.pipes.data.SolutionData.serializer(), content)
+                            repository.updateBestScore(solutionData.levelId, solutionData.playerMoves)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    _levelStats.value = repository.getLevelStats()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
