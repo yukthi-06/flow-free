@@ -318,6 +318,7 @@ fun GameScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel, packIn
                 )
             }
             val actionButtons = @Composable {
+                val currentLevelStats = pack.levels.getOrNull(levelIndex)?.id?.let { levelStats[it] }
                 val hasHistory = isReady && uiState.history.isNotEmpty()
                 Button(
                     onClick = { viewModel.onUndo() },
@@ -330,6 +331,13 @@ fun GameScreen(backStack: NavBackStack<Route>, viewModel: PipesViewModel, packIn
                     enabled = hasHistory && !isLevelWon
                 ) {
                     Text(stringResource(R.string.restart))
+                }
+                if (currentLevelStats != null && !isLevelWon) {
+                    Button(
+                        onClick = { viewModel.loadSolution() }
+                    ) {
+                        Text("Solution")
+                    }
                 }
             }
             val board = @Composable { boardModifier: Modifier ->

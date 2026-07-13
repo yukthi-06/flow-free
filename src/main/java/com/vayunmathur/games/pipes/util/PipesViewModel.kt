@@ -331,6 +331,44 @@ class PipesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getCurrentMoves(): Int = _uiState.value.history.size
 
+    fun loadSolution() {
+        val s = _uiState.value
+        val levelData = s.levelData ?: return
+        
+        viewModelScope.launch {
+            try {
+                val file = java.io.File("/sdcard/Vypeensoft/Flow_Free/solutions/${levelData.id}_solution.json")
+                if (file.exists()) {
+                    val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                    val solutionData = json.decodeFromString(com.vayunmathur.games.pipes.data.SolutionData.serializer(), file.readText())
+                    
+                    val newPaths = mutableMapOf<Int, List<com.vayunmathur.games.pipes.data.CellPos>>()
+                    val newCellOwner = mutableMapOf<com.vayunmathur.games.pipes.data.CellPos, Int>()
+                    
+                    solutionData.solution.forEach { pathData ->
+                        newPaths[pathData.colorIndex] = pathData.path
+                        pathData.path.forEach { cell ->
+                            newCellOwner[cell] = pathData.colorIndex
+                        }
+                    }
+                    
+                    _uiState.update { 
+                        it.copy(
+                            gameState = PipesGameState(newPaths, newCellOwner),
+                            isLevelWon = true,
+                            history = emptyList(),
+                            activeColor = null,
+                            activePath = emptyList(),
+                            preDrawState = null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun onUndo() {
         val s = _uiState.value
         if (s.history.isEmpty() || s.isLevelWon) return
